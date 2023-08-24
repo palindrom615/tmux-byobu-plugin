@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
 #
 #    byobu - wrapper script
 #    Copyright (C) 2008-2009 Canonical Ltd.
