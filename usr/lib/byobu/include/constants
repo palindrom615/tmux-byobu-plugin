@@ -25,23 +25,10 @@ PKG="byobu"
 
 PCT="%"
 
-# Support two different backends (screen/tmux)
-if [ -z "$BYOBU_BACKEND" ]; then
-	[ -r "/etc/byobu/backend" ] && . "/etc/byobu/backend"
-	[ -r "$BYOBU_CONFIG_DIR/backend" ] && . "$BYOBU_CONFIG_DIR/backend"
-fi
-case "$BYOBU_BACKEND" in
-	tmux)
-		export BYOBU_BACKEND
-		BYOBU_ARG_VERSION="-V"
-		ESC=
-	;;
-	screen)
-		export BYOBU_BACKEND
-		BYOBU_ARG_VERSION="-v"
-		ESC="\005"
-	;;
-esac
+
+export BYOBU_BACKEND
+BYOBU_ARG_VERSION="-V"
+ESC=
 
 # MacOS Support
 eval $BYOBU_TEST gsed >/dev/null 2>&1 && export BYOBU_SED="gsed" || export BYOBU_SED="sed"
