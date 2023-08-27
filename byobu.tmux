@@ -69,7 +69,7 @@ if [ "$#" = "1" ]; then
 				u=$(bash -c "ulimit -u")
 				[ "$u" = "unlimited" ] || [ $u -ge 1600 ] || echo "WARNING: ulimit -u is too low" 1>&2
 			fi
-			exec $BYOBU_BACKEND $BYOBU_ARG_VERSION
+			exec tmux $BYOBU_ARG_VERSION
 			exit 0
 		;;
 	esac
@@ -132,7 +132,7 @@ if egrep -qs "default-command|default-shell" $HOME/.$PKG/.tmux.conf >/dev/null 2
 else
 	DEFAULT_WINDOW="new-session -n $BYOBU_WINDOW_NAME ${BYOBU_PREFIX}/bin/byobu-shell"
 fi
-sessions=$($BYOBU_BACKEND list-sessions 2>/dev/null) || true
+sessions=$(tmux list-sessions 2>/dev/null) || true
 CUSTOM_WINDOW_SET=0
 if [ -s "$BYOBU_CONFIG_DIR/windows.tmux.$BYOBU_WINDOWS" ]; then
 	CUSTOM_WINDOW_SET=1
@@ -150,7 +150,7 @@ export BYOBU_TERM
 tmux setenv -g BYOBU_PREFIX "$BYOBU_PREFIX"
 tmux setenv -g BYOBU_CONFIG_DIR "$BYOBU_CONFIG_DIR"
 tmux setenv -g BYOBU_TERM "$BYOBU_TERM"
-tmux setenv -g BYOBU_BACKEND "$BYOBU_BACKEND"
+tmux setenv -g BYOBU_BACKEND "tmux"
 tmux setenv -g BYOBU_BIN "$BYOBU_PREFIX/bin"
 tmux setenv -g BYOBU_CHARMAP "$BYOBU_CHARMAP"
 tmux setenv -g PATH "$PATH"

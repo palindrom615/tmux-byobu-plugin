@@ -41,9 +41,9 @@ __raid() {
 	done < /proc/mdstat
 	if [ -n "$msg" ]; then
 		color B w r; printf "%s" "$msg"; color --
-	elif [ -e "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/raid" ]; then
+	elif [ -e "$BYOBU_RUN_DIR/status.tmux/raid" ]; then
 		# Clear out cached raid message
-		rm -f "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/raid"*
+		rm -f "$BYOBU_RUN_DIR/status.tmux/raid"*
 	fi
 }
 

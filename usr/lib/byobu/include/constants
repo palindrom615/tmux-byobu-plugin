@@ -26,7 +26,7 @@ PKG="byobu"
 PCT="%"
 
 
-export BYOBU_BACKEND
+export BYOBU_BACKEND="tmux"
 BYOBU_ARG_VERSION="-V"
 ESC=
 

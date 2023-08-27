@@ -32,7 +32,7 @@ __mail() {
 	elif [ -d "$MAILFILE/new" ] && "$(ls -A "$MAILFILE/new" 2>/dev/null)"; then
 		 color b; printf "%s" "$ICON_MAIL"; color --
 	else
-		rm -f "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/mail"*
+		rm -f "$BYOBU_RUN_DIR/status.tmux/mail"*
 	fi
 }
 

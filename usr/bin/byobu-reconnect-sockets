@@ -45,14 +45,7 @@ export_and_send () {
 	var="$1"
 	value="$(eval "echo \$$var")"
 	export "$var"
-	case $BYOBU_BACKEND in
-		tmux)
-			tmux setenv "$var" "$value"
-		;;
-		screen)
-			screen -X setenv "$var" "$value"
-		;;
-	esac
+	tmux setenv "$var" "$value"
 }
 
 screen_update () {
@@ -83,14 +76,7 @@ tmux_update () {
 # Pull environment variables/values from backend and update/export here
 VARS_TO_UPDATE="DISPLAY DBUS_SESSION_BUS_ADDRESS SESSION_MANAGER GPG_AGENT_INFO XDG_SESSION_COOKIE XDG_SESSION_PATH GNOME_KEYRING_CONTROL GNOME_KEYRING_PID GPG_AGENT_INFO SSH_ASKPASS SSH_AUTH_SOCK SSH_AGENT_PID WINDOWID UPSTART_JOB UPSTART_EVENTS UPSTART_SESSION UPSTART_INSTANCE"
 
-case $BYOBU_BACKEND in
-	tmux)
-		tmux_update
-	;;
-	screen)
-		screen_update
-	;;
-esac
+tmux_update
 
 # Establish gpg-agent socket, helps when reconnecting to a detached session
 newest "$HOME/.gnupg/gpg-agent-info-*" && . "$_RET" && export_and_send GPG_AGENT_INFO

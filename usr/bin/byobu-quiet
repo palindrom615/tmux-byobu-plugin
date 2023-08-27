@@ -34,6 +34,6 @@ else
 	status="$USER@$(hostname)"
 	echo "hardstatus lastline '$status'" >> "$BYOBU_CONFIG_DIR/keybindings"
 fi
-$BYOBU_BACKEND -X at 0 source "$BYOBU_CONFIG_DIR/profile"
+tmux -X at 0 source "$BYOBU_CONFIG_DIR/profile"
 
 # vi: syntax=sh ts=4 noexpandtab

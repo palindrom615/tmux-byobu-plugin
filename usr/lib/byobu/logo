@@ -35,7 +35,7 @@ __logo() {
 	case "$distro" in
 		*ubuntu*)
 			if $MARKUP; then
-				if [ "$BYOBU_BACKEND" = "tmux" ] && [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
+				if [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
 					if [ ! "$VTE_CJK_WIDTH" = "1" ] && [ !  "$VTE_CJK_WIDTH" = "wide" ] ; then
 						# color "colour202" "colour255" ; printf " u "; color -
 						# Ubuntu's logo doesn't display anywhere, except for on Ubuntu itself, which has the Ubuntu font with the logo
@@ -64,7 +64,7 @@ __logo() {
 			$MARKUP && printf "$(color b w b)%s$(color -)" "$logo" || printf "$logo"
 		;;
 		*centos*)
-			if [ "$BYOBU_BACKEND" = "tmux" ] && [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
+			if [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
 				logo="※ "
 				$MARKUP && printf "$(color w m)※ $(color -)" || printf "$logo"
 			else
@@ -93,7 +93,7 @@ __logo() {
 			$MARKUP && printf "$(color colour0 colour69)██$(color colour0 colour167)■$(color colour0 colour214)■$(color colour0 colour69)▄$(color colour0 colour71)█$(color colour0 colour167)■$(color -)" || printf "$logo"
 		;;
 		*mac*|*darwin*)
-			if [ "$BYOBU_BACKEND" = "tmux" ] && [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
+			if [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
 				# The Apple option character
 				#logo=" ⌘  "
 				# The Apple logo -- only visible from Mac terminals
@@ -140,7 +140,7 @@ __logo() {
 			$MARKUP && printf "$(color W r)%s$(color -)" "$logo" || printf "$logo"
 		;;
 		*)
-			if [ "$BYOBU_BACKEND" = "tmux" ] && [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
+			if [ "$BYOBU_CHARMAP" = "UTF-8" ]; then
 				logo="〣"
 			else
 				logo="[B]"

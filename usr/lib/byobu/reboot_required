@@ -32,7 +32,7 @@ __reboot_required_detail() {
 }
 
 __reboot_required() {
-	local status="$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/reboot_required"
+	local status="$BYOBU_RUN_DIR/status.tmux/reboot_required"
 	local livepatched=0
 	if [ -e "$UNATTENDED_UPGRADE_FLAG" ]; then
 		color b R W; printf "$ICON_UPGRADE "; color --;

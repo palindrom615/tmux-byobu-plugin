@@ -128,7 +128,7 @@ setcolor_screen() {
 	[ "$MONOCHROME" = "1" ] || MONOCHROME=0
 	printf "FOREGROUND=$FOREGROUND\nBACKGROUND=$BACKGROUND\nMONOCHROME=$MONOCHROME" > $FILE
 	touch "$BYOBU_RUN_DIR/reload-required"
-	$BYOBU_BACKEND -X at 0 source "$BYOBU_CONFIG_DIR/profile"
+	tmux -X at 0 source "$BYOBU_CONFIG_DIR/profile"
 }
 
 get_contrast() {
@@ -147,9 +147,6 @@ get_contrast() {
 }
 
 setcolor_tmux() {
-	if [ "$BYOBU_BACKEND" != "tmux" ]; then
-		echo "WARNING: This functionality is only supported in Byobu with the tmux backend" 1>&2
-	fi
 	dark="$1"
 	get_contrast "$dark"
 	light="$_RET"

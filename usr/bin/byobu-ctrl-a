@@ -31,30 +31,19 @@ PKG="byobu"
 . "${BYOBU_PREFIX}/lib/${PKG}/include/common"
 
 bind_to=""
-keybindings="$BYOBU_CONFIG_DIR/keybindings"
-[ "$BYOBU_BACKEND" = "tmux" ] && keybindings="$keybindings.tmux"
+keybindings="$keybindings.tmux"
 touch "$keybindings"
 
 # If the user has already chosen an escape sequence, then
 # presumably they want ctrl-a to operate in emacs mode
-case "$BYOBU_BACKEND" in
-	"screen")
-		if grep -qs "^escape" "$keybindings"; then
-			# Check for escape definition in local keybindings config
-			bind_to="emacs"
-		fi
-	;;
-	"tmux")
-		if grep -qs "^set -g prefix" "$keybindings"e;  then
-			# Check for escape definition in local keybindings config
-			bind_to="emacs"
-		fi
-		# Check for some other escape sequence in tmux keys
-		if $BYOBU_BACKEND list-keys 2>/dev/null | grep -qs "^bind-key\s\+[^a]\s\+send-prefix"; then
-			bind_to="emacs"
-		fi
-	;;
-esac
+if grep -qs "^set -g prefix" "$keybindings"e;  then
+	# Check for escape definition in local keybindings config
+	bind_to="emacs"
+fi
+# Check for some other escape sequence in tmux keys
+if tmux list-keys 2>/dev/null | grep -qs "^bind-key\s\+[^a]\s\+send-prefix"; then
+	bind_to="emacs"
+fi
 
 case "${1}" in
 	-h|--help) Usage; exit 0;;
@@ -96,45 +85,25 @@ done
 
 case "$bind_to" in
 	emacs)
-		case "$BYOBU_BACKEND" in
-			screen)
-				$BYOBU_SED_INLINE -e "/^register x /d" -e "/^bindkey /d" -e "/^escape /d" "$keybindings"
-				echo "bindkey \"^${KEY}\"" >> "$keybindings"
-				$BYOBU_BACKEND -X at 0 source "$BYOBU_CONFIG_DIR/profile"
-			;;
-			tmux)
-				$BYOBU_SED_INLINE -e "/^set -g prefix/d" -e "/ send-prefix/d" -e "/^unbind-key -n C-${key}/d" "$keybindings"
-				echo "set -g prefix F12" >> "$keybindings"
-				echo "unbind-key -n C-${key}" >> "$keybindings"
-				$BYOBU_BACKEND source "$BYOBU_PREFIX/share/byobu/profiles/tmuxrc" 2>/dev/null
-			;;
-		esac
+		$BYOBU_SED_INLINE -e "/^set -g prefix/d" -e "/ send-prefix/d" -e "/^unbind-key -n C-${key}/d" "$keybindings"
+		echo "set -g prefix F12" >> "$keybindings"
+		echo "unbind-key -n C-${key}" >> "$keybindings"
+		tmux source "$BYOBU_PREFIX/share/byobu/profiles/tmuxrc" 2>/dev/null
 		echo "INFO: ctrl-a will now operate in emacs mode"
 	;;
 	screen)
-		case "$BYOBU_BACKEND" in
-			screen)
-				$BYOBU_SED_INLINE -e "/^register x /d" -e "/^bindkey \"^\"/d" -e "/^escape /d" "$keybindings"
-				echo "bindkey \"^${KEY}\"" >> "$keybindings"
-				echo "escape \"^${KEY}${key}\"" >> "$keybindings"
-				echo "register x \"^${KEY}\"" >> "$keybindings"
-				$BYOBU_BACKEND -X at 0 source "$BYOBU_CONFIG_DIR/profile"
-			;;
-			tmux)
-				$BYOBU_SED_INLINE -e "/^set -g prefix/d" -e "/ send-prefix/d" -e "/^unbind-key -n C-${key}/d" "$keybindings"
-				echo "unbind-key -n C-${key}" >> "$keybindings"
-				if $BYOBU_BACKEND -V | grep " 1.5"; then
-					# tmux 1.5 supports a list of prefixes
-					echo "set -g prefix ^${KEY},F12" >> "$keybindings"
-				else
-					# tmux 1.6 and above supports prefix and prefix2
-					echo "set -g prefix ^${KEY}" >> "$keybindings"
-					echo "set -g prefix2 F12" >> "$keybindings"
-				fi
-				echo "bind ${key} send-prefix" >> "$keybindings"
-				$BYOBU_BACKEND source "$BYOBU_PREFIX/share/byobu/profiles/tmuxrc" 2>/dev/null
-			;;
-		esac
+		$BYOBU_SED_INLINE -e "/^set -g prefix/d" -e "/ send-prefix/d" -e "/^unbind-key -n C-${key}/d" "$keybindings"
+		echo "unbind-key -n C-${key}" >> "$keybindings"
+		if tmux -V | grep " 1.5"; then
+			# tmux 1.5 supports a list of prefixes
+			echo "set -g prefix ^${KEY},F12" >> "$keybindings"
+		else
+			# tmux 1.6 and above supports prefix and prefix2
+			echo "set -g prefix ^${KEY}" >> "$keybindings"
+			echo "set -g prefix2 F12" >> "$keybindings"
+		fi
+		echo "bind ${key} send-prefix" >> "$keybindings"
+		tmux source "$BYOBU_PREFIX/share/byobu/profiles/tmuxrc" 2>/dev/null
 		echo "INFO: ctrl-a will now operate in GNU Screen mode"
 	;;
 	*)

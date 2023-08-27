@@ -38,7 +38,7 @@ __network() {
 			up) symbol="$ICON_UP" ;;
 			down) symbol="$ICON_DN" ;;
 		esac
-		cache="$BYOBU_RUN_DIR/cache.$BYOBU_BACKEND/network.$i"
+		cache="$BYOBU_RUN_DIR/cache.tmux/network.$i"
 		[ -r "$cache" ] && read x1 < "$cache" || tx1=0
 		local iface rbytes rpackets rerrs rdrop rfifo rframe rcompressed rmulticast tbytes tpackets terrs tdrop tfifo tcolls tcarrier tcompressed
 		cat /proc/net/dev > "$cache".dev
@@ -91,7 +91,7 @@ __network() {
 			[ -n "$rate" ] || continue
 			color b m w; printf "%s%s" "$symbol" "$rate"; color -; color m w; printf "%s" "$unit"; color --
 		else
-			rm -f "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/network"*
+			rm -f "$BYOBU_RUN_DIR/status.tmux/network"*
 		fi
 	done
 }

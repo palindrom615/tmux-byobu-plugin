@@ -36,7 +36,6 @@ PKG = "byobu"
 SHELL = os.getenv("SHELL", "/bin/bash")
 HOME = os.getenv("HOME")
 BYOBU_CONFIG_DIR = os.getenv("BYOBU_CONFIG_DIR", HOME + "/.byobu")
-BYOBU_BACKEND = os.getenv("BYOBU_BACKEND", "tmux")
 choice = -1
 sessions = []
 text = []
@@ -48,42 +47,18 @@ BYOBU_UPDATE_ENVVARS = ["DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "SESSION_MANAGER"
 def get_sessions():
 	sessions = []
 	i = 0
-	output = False
-	if BYOBU_BACKEND == "screen":
-		try:
-			output = subprocess.Popen(["screen", "-ls"], stdout=subprocess.PIPE).communicate()[0]
-		except subprocess.CalledProcessError as cpe:
-			# screen -ls seems to always return 1
-			if cpe.returncode != 1:
-				raise
-			else:
-				output = cpe.output
-		if sys.stdout.encoding is None:
-			output = output.decode("UTF-8")
-		else:
-			output = output.decode(sys.stdout.encoding)
-		if output:
-			for s in output.splitlines():
-				s = re.sub(r'\s+', ' ', s)
-				# Ignore hidden sessions (named sessions that start with a "." or a "_")
-				if s and s != " " and (s.find(" ") == 0 and len(s) > 1 and s.count("..") == 0 and s.count("._") == 0):
-					text.append("screen: %s" % s.strip())
-					items = s.split(" ")
-					sessions.append("screen____%s" % items[1])
-					i += 1
-	if BYOBU_BACKEND == "tmux":
-		output = subprocess.Popen(["tmux", "list-sessions"], stdout=subprocess.PIPE).communicate()[0]
-		if sys.stdout.encoding is None:
-			output = output.decode("UTF-8")
-		else:
-			output = output.decode(sys.stdout.encoding)
-		if output:
-			for s in output.splitlines():
-				# Ignore hidden sessions (named sessions that start with a "_")
-				if s and not s.startswith("_") and s.find("-") == -1:
-					text.append("tmux: %s" % s.strip())
-					sessions.append("tmux____%s" % s.split(":")[0])
-					i += 1
+	output = subprocess.Popen(["tmux", "list-sessions"], stdout=subprocess.PIPE).communicate()[0]
+	if sys.stdout.encoding is None:
+		output = output.decode("UTF-8")
+	else:
+		output = output.decode(sys.stdout.encoding)
+	if output:
+		for s in output.splitlines():
+			# Ignore hidden sessions (named sessions that start with a "_")
+			if s and not s.startswith("_") and s.find("-") == -1:
+				text.append("tmux: %s" % s.strip())
+				sessions.append("tmux____%s" % s.split(":")[0])
+				i += 1
 	return sessions
 
 
@@ -91,27 +66,26 @@ def cull_zombies(session_name):
 	# When using tmux session groups, closing a client will leave
 	# unattached "zombie" sessions that will never be reattached.
 	# Search for and kill any unattached hidden sessions in the same group
-	if BYOBU_BACKEND == "tmux":
-		output = subprocess.Popen(["tmux", "list-sessions"], stdout=subprocess.PIPE).communicate()[0]
-		if sys.stdout.encoding is None:
-			output = output.decode("UTF-8")
-		else:
-			output = output.decode(sys.stdout.encoding)
-		if not output:
-			return
+	output = subprocess.Popen(["tmux", "list-sessions"], stdout=subprocess.PIPE).communicate()[0]
+	if sys.stdout.encoding is None:
+		output = output.decode("UTF-8")
+	else:
+		output = output.decode(sys.stdout.encoding)
+	if not output:
+		return
 
-		# Find the master session to extract the group name. We use
-		# the group number to be extra sure the right session is getting
-		# killed. We don't want to accidentally kill the wrong one
-		pattern = "^%s:.+\\((group [^\\)]+)\\).*$" % session_name
-		master = re.search(pattern, output, re.MULTILINE)
-		if not master:
-			return
+	# Find the master session to extract the group name. We use
+	# the group number to be extra sure the right session is getting
+	# killed. We don't want to accidentally kill the wrong one
+	pattern = "^%s:.+\\((group [^\\)]+)\\).*$" % session_name
+	master = re.search(pattern, output, re.MULTILINE)
+	if not master:
+		return
 
-		# Kill all the matching hidden & unattached sessions
-		pattern = "^_%s-\\d+:.+\\(%s\\)$" % (session_name, master.group(1))
-		for s in re.findall(pattern, output, re.MULTILINE):
-			subprocess.Popen(["tmux", "kill-session", "-t", s.split(":")[0]])
+	# Kill all the matching hidden & unattached sessions
+	pattern = "^_%s-\\d+:.+\\(%s\\)$" % (session_name, master.group(1))
+	for s in re.findall(pattern, output, re.MULTILINE):
+		subprocess.Popen(["tmux", "kill-session", "-t", s.split(":")[0]])
 
 
 def update_environment(session):
@@ -145,7 +119,7 @@ sessions = get_sessions()
 show_shell = os.path.exists("%s/.always-select" % (BYOBU_CONFIG_DIR))
 if len(sessions) > 1 or show_shell:
 	sessions.append("NEW")
-	text.append("Create a new Byobu session (%s)" % BYOBU_BACKEND)
+	text.append("Create a new Byobu session (tmux)")
 	sessions.append("SHELL")
 	text.append("Run a shell without Byobu (%s)" % SHELL)
 
@@ -192,10 +166,7 @@ elif len(sessions) == 1:
 if choice >= 1:
 	if sessions[choice - 1] == "NEW":
 		# Create a new session
-		if BYOBU_BACKEND == "tmux":
-			os.execvp("byobu", ["byobu", "new-session", SHELL])
-		else:
-			os.execvp("byobu", ["byobu", SHELL])
+		os.execvp("byobu", ["byobu", "new-session", SHELL])
 	elif sessions[choice - 1] == "SHELL":
 		os.execvp(SHELL, [SHELL])
 	else:
@@ -203,7 +174,4 @@ if choice >= 1:
 		attach_session(sessions[choice - 1])
 
 # No valid selection, default to the youngest session, create if necessary
-if BYOBU_BACKEND == "tmux":
-	os.execvp("tmux", ["tmux"])
-else:
-	os.execvp("screen", ["screen", "-AOxRR"])
+os.execvp("tmux", ["tmux"])

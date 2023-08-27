@@ -31,9 +31,9 @@ ___print_updates() {
 				printf "$ICON_UPDATES"
 			fi
 			color --
-		elif [ "$u" = "0" ] && [ -e "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/updates_available" ]; then
+		elif [ "$u" = "0" ] && [ -e "$BYOBU_RUN_DIR/status.tmux/updates_available" ]; then
 			# Clear out byobu's status cache
-			rm -f "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/updates_available"*
+			rm -f "$BYOBU_RUN_DIR/status.tmux/updates_available"*
 		fi
 	fi
 }
@@ -154,7 +154,7 @@ __updates_available_detail() {
 }
 
 __updates_available() {
-	local mycache="$BYOBU_RUN_DIR/cache.$BYOBU_BACKEND/updates-available"
+	local mycache="$BYOBU_RUN_DIR/cache.tmux/updates-available"
 	# If mycache is present, use it
 	[ -r $mycache ] && ___print_updates "$mycache"
 	# If we really need to do so (mycache doesn't exist, or the package database has changed),

@@ -27,8 +27,8 @@ PKG="byobu"
 [ -f "$BYOBU_CONFIG_DIR/status.disable" ] && exit 0
 
 # Clean and create cache directories
-[ -d "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND" ] || mkdir -p "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND"
-[ -d "$BYOBU_RUN_DIR/.last.$BYOBU_BACKEND" ] || mkdir -p "$BYOBU_RUN_DIR/.last.$BYOBU_BACKEND"
+[ -d "$BYOBU_RUN_DIR/status.tmux" ] || mkdir -p "$BYOBU_RUN_DIR/status.tmux"
+[ -d "$BYOBU_RUN_DIR/.last.tmux" ] || mkdir -p "$BYOBU_RUN_DIR/.last.tmux"
 
 # Source configurations
 . "${BYOBU_PREFIX}/lib/${PKG}/include/icons"
@@ -37,42 +37,29 @@ for i in "${BYOBU_PREFIX}/share/$PKG/status/status" "${BYOBU_PREFIX}/share/$PKG/
 done
 [ -r "$BYOBU_CONFIG_DIR/datetime.tmux" ] && . "$BYOBU_CONFIG_DIR/datetime.tmux"
 
-case "$BYOBU_BACKEND" in
-	screen)
-		# Reload profile, if necessary
-		if [ -e "/var/run/screen/S-$USER/$PKG.reload-required" ] || [ -e "$BYOBU_RUN_DIR/reload-required" ]; then
-			if [ -r "$BYOBU_CONFIG_DIR/profile" ]; then
-				# If the forced janitorial steps succeed, try a profile reload
-				byobu-janitor --force && screen -X at 0 source "$BYOBU_CONFIG_DIR/profile" >/dev/null 2>&1
-			fi
-		fi
-	;;
-	tmux)
-		# Fix status printing for small terminal sizes in tmux
-		width=$(tmux list-windows -F "#{session_width}")
-		if [ -r "$BYOBU_RUN_DIR/width" ]; then
-			read w_last < $BYOBU_RUN_DIR/width 2>/dev/null 1>&2
-		else
-			w_last=0
-		fi
-		for w in $width; do
-			if [ "$w" != "$w_last" ]; then
-				# go through cat due to possible tmux/epoll bug
-				tmux set -g status-left-length $(($w*1/4)) | cat >/dev/null 2>&1
-				tmux set -g status-right-length $(($w*3/4)) | cat >/dev/null 2>&1
-				printf "$w" > $BYOBU_RUN_DIR/width
-				break
-			fi
-		done
-	;;
-esac
+# Fix status printing for small terminal sizes in tmux
+width=$(tmux list-windows -F "#{session_width}")
+if [ -r "$BYOBU_RUN_DIR/width" ]; then
+	read w_last < $BYOBU_RUN_DIR/width 2>/dev/null 1>&2
+else
+	w_last=0
+fi
+for w in $width; do
+	if [ "$w" != "$w_last" ]; then
+		# go through cat due to possible tmux/epoll bug
+		tmux set -g status-left-length $(($w*1/4)) | cat >/dev/null 2>&1
+		tmux set -g status-right-length $(($w*3/4)) | cat >/dev/null 2>&1
+		printf "$w" > $BYOBU_RUN_DIR/width
+		break
+	fi
+done
 
 # Get the current timestamp
 get_now; NOW=${_RET}
 
 get_status() {
-	local cachepath="$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/$1"
-	local lastpath="$BYOBU_RUN_DIR/.last.$BYOBU_BACKEND/$1"
+	local cachepath="$BYOBU_RUN_DIR/status.tmux/$1"
+	local lastpath="$BYOBU_RUN_DIR/.last.tmux/$1"
 	local lastrun=0
 	[ -r "$lastpath" ] && read lastrun < "$lastpath"
 	case "$1" in
@@ -111,43 +98,40 @@ case "$1" in
 	*left|*right)
 		eval items="\$$1"
 		for i in $items; do
-			if [ "$BYOBU_BACKEND" = "tmux" ]; then
-				case "$i" in
-					\#date)
-						if [ -n "$BYOBU_DATE" ]; then
-							$BYOBU_SED_INLINE -e "/BYOBU_DATE=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
-							printf "%s\n" 'BYOBU_DATE=' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
-							touch "$BYOBU_RUN_DIR/reload-required"
-							continue
-						fi
-					;;
-					\#time)
-						if [ -n "$BYOBU_TIME" ]; then
-							$BYOBU_SED_INLINE -e "/BYOBU_TIME=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
-							printf "%s\n" 'BYOBU_TIME=' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
-							touch "$BYOBU_RUN_DIR/reload-required"
-							continue
-						fi
-					;;
-					date)
-						if [ -z "$BYOBU_DATE" ]; then
-							$BYOBU_SED_INLINE -e "/BYOBU_DATE=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
-							printf "%s\n" 'BYOBU_DATE="%Y-%m-%d "' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
-							touch "$BYOBU_RUN_DIR/reload-required"
-							continue
-						fi
-					;;
-					time)
-						if [ -z "$BYOBU_TIME" ]; then
-							$BYOBU_SED_INLINE -e "/BYOBU_TIME=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
-							printf "%s\n" 'BYOBU_TIME="%H:%M:%S"' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
-							touch "$BYOBU_RUN_DIR/reload-required"
-							continue
-						fi
-					;;
-				esac
-			fi
-			case "$i" in \#*) continue ;; esac
+			case "$i" in
+				\#date)
+					if [ -n "$BYOBU_DATE" ]; then
+						$BYOBU_SED_INLINE -e "/BYOBU_DATE=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
+						printf "%s\n" 'BYOBU_DATE=' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
+						touch "$BYOBU_RUN_DIR/reload-required"
+						continue
+					fi
+				;;
+				\#time)
+					if [ -n "$BYOBU_TIME" ]; then
+						$BYOBU_SED_INLINE -e "/BYOBU_TIME=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
+						printf "%s\n" 'BYOBU_TIME=' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
+						touch "$BYOBU_RUN_DIR/reload-required"
+						continue
+					fi
+				;;
+				date)
+					if [ -z "$BYOBU_DATE" ]; then
+						$BYOBU_SED_INLINE -e "/BYOBU_DATE=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
+						printf "%s\n" 'BYOBU_DATE="%Y-%m-%d "' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
+						touch "$BYOBU_RUN_DIR/reload-required"
+						continue
+					fi
+				;;
+				time)
+					if [ -z "$BYOBU_TIME" ]; then
+						$BYOBU_SED_INLINE -e "/BYOBU_TIME=/d" "$BYOBU_CONFIG_DIR/datetime.tmux"
+						printf "%s\n" 'BYOBU_TIME="%H:%M:%S"' >> "$BYOBU_CONFIG_DIR/datetime.tmux"
+						touch "$BYOBU_RUN_DIR/reload-required"
+						continue
+					fi
+				;;
+			esac
 			get_status "$i"
 		done
 	;;

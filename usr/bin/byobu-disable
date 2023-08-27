@@ -34,7 +34,7 @@ echo
 # If we're in a byobu session, let's exit that too
 case "$STY" in
 	*byobu)
-		$BYOBU_BACKEND -X at 0 quit
+		tmux -X at 0 quit
 	;;
 esac
 

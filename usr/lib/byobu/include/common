@@ -28,7 +28,7 @@ if [ -z "${BYOBU_INCLUDED_LIBS}" ]; then
 	done
 
 	# Creating backend cache
-	[ -d "$BYOBU_RUN_DIR/cache.$BYOBU_BACKEND" ] || mkdir -p "$BYOBU_RUN_DIR/cache.$BYOBU_BACKEND"
+	[ -d "$BYOBU_RUN_DIR/cache.tmux" ] || mkdir -p "$BYOBU_RUN_DIR/cache.tmux"
 
 	. "${BYOBU_PREFIX}/lib/${PKG}/include/shutil"
 	. "${BYOBU_PREFIX}/lib/${PKG}/include/constants"

@@ -75,7 +75,7 @@ __wifi_quality() {
 	if [ "$bitrate" -gt 0 ] && [ "$quality" -gt 0 ]; then
 		printf "${ICON_WIFI}"; color b C k; printf "%s" "$bitrate"; color -; color C k; printf "%s" "$ICON_MBPS"; color -; color b C k; printf "%s" "$quality"; color -; color C k; printf "%s" "$PCT"; color --
 	else
-		rm -f "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/wifi_quality"*
+		rm -f "$BYOBU_RUN_DIR/status.tmux/wifi_quality"*
 	fi
 }
 

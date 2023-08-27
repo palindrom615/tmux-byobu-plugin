@@ -25,7 +25,7 @@ PKG="byobu"
 . "${BYOBU_PREFIX}/lib/${PKG}/include/common"
 
 # Ensure that all updates get run immediately
-rm -rf "$BYOBU_RUN_DIR/.last.$BYOBU_BACKEND"
+rm -rf "$BYOBU_RUN_DIR/.last.tmux"
 
 # Ensure that we re-check metadata service
 rm -f "$BYOBU_CONFIG_DIR/.metadata_available" "$BYOBU_RUN_DIR/.metadata_available"
@@ -63,27 +63,15 @@ if ! grep -qs "^screen_upper_left=" "$BYOBU_CONFIG_DIR/status"; then
 	rm -f "$BYOBU_CONFIG_DIR/status" "$BYOBU_CONFIG_DIR/statusrc"
 fi
 
-# NOTE: Older version of Screen have an arbitrary limit of only being able
-# to change colors 16 times in this 'hardstatus string'.
-# Also committed in Upstream git, but not yet released.
-#  * http://savannah.gnu.org/bugs/?22146
-# If we could reliably tell if we had a patched screen, we'd do so here...
-MC=0
-
 # Affects: First runs with no configuration
 # Seed the configuration
 # Setup initial local user configuration
-[ -r "$BYOBU_CONFIG_DIR/color" ] || printf "BACKGROUND=k\nFOREGROUND=w\nMONOCHROME=$MC" > "$BYOBU_CONFIG_DIR/color"
 [ -r "$BYOBU_CONFIG_DIR/color.tmux" ] || sed -e "s/^#.*//" -e "/^\s*$/d" -e "s/^export //" "$BYOBU_PREFIX/lib/$PKG/include/colors"  > "$BYOBU_CONFIG_DIR/color.tmux"
 [ -r "$BYOBU_CONFIG_DIR/datetime.tmux" ] || printf 'BYOBU_DATE="%%Y-%%m-%%d "\nBYOBU_TIME="%%H:%%M:%%S"\n' > "$BYOBU_CONFIG_DIR/datetime.tmux"
-[ -r "$BYOBU_CONFIG_DIR/profile" ] || echo "source \$BYOBU_PREFIX/share/$PKG/profiles/common" > "$BYOBU_CONFIG_DIR/profile"
 [ -r "$BYOBU_CONFIG_DIR/profile.tmux" ] || echo "source \$BYOBU_PREFIX/share/$PKG/profiles/tmux" > "$BYOBU_CONFIG_DIR/profile.tmux"
-[ -r "$BYOBU_CONFIG_DIR/keybindings" ] || echo "source \$BYOBU_PREFIX/share/$PKG/keybindings/common" > "$BYOBU_CONFIG_DIR/keybindings"
 [ -r "$BYOBU_CONFIG_DIR/keybindings.tmux" ] || touch "$BYOBU_CONFIG_DIR/keybindings.tmux"
-[ -r "$BYOBU_CONFIG_DIR/windows" ] || touch "$BYOBU_CONFIG_DIR/windows"
 [ -r "$BYOBU_CONFIG_DIR/windows.tmux" ] || touch "$BYOBU_CONFIG_DIR/windows.tmux"
 [ -r "$BYOBU_CONFIG_DIR/backend" ] || echo "BYOBU_BACKEND=$BYOBU_BACKEND" > "$BYOBU_CONFIG_DIR/backend"
-[ -r "$BYOBU_CONFIG_DIR/.screenrc" ] || touch "$BYOBU_CONFIG_DIR/.screenrc"
 [ -r "$BYOBU_CONFIG_DIR/.tmux.conf" ] || touch "$BYOBU_CONFIG_DIR/.tmux.conf"
 for f in status statusrc; do
 	if [ ! -r "$BYOBU_CONFIG_DIR/$f" ]; then

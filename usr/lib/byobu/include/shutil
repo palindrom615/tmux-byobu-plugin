@@ -112,14 +112,7 @@ color_tmux() {
 }
 
 color() {
-	case "$BYOBU_BACKEND" in
-		tmux)
-			color_tmux "$@"
-		;;
-		screen)
-			color_screen "$@"
-		;;
-	esac
+	color_tmux "$@"
 }
 
 # uncommented_lines(char=#)

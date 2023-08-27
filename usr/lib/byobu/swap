@@ -37,7 +37,7 @@ __swap() {
 	done < /proc/meminfo
 	if [ "${stotal:-0}" = "0" ]; then
 		printf ""
-		rm -f "$BYOBU_RUN_DIR/status.$BYOBU_BACKEND/swap"
+		rm -f "$BYOBU_RUN_DIR/status.tmux/swap"
 	else
 		mem=${stotal}
 		f=$(((100*($stotal-$sfree))/$stotal))

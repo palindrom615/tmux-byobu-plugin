@@ -51,8 +51,6 @@ HOME = os.getenv("HOME")
 USER = os.getenv("USER")
 BYOBU_CONFIG_DIR = os.getenv("BYOBU_CONFIG_DIR", HOME + "/.byobu")
 BYOBU_RUN_DIR = os.getenv("BYOBU_RUN_DIR", HOME + "/.cache/byobu")
-BYOBU_BACKEND = os.getenv("BYOBU_BACKEND", "tmux")
-BYOBU_SOCKETDIR = os.getenv("SOCKETDIR", "/var/run/screen")
 BYOBU_PREFIX = os.getenv("BYOBU_PREFIX", "@prefix@")
 SHARE = BYOBU_PREFIX + '/share/' + PKG
 DOC = BYOBU_PREFIX + '/share/doc/' + PKG
@@ -94,8 +92,6 @@ def reload_required():
 			os.makedirs(BYOBU_CONFIG_DIR, 493)
 		f = open(RELOAD_FLAG, 'w')
 		f.close()
-		if BYOBU_BACKEND == "screen":
-			subprocess.call([BYOBU_BACKEND, "-X", "at", "0", "source", "%s/profile" % BYOBU_CONFIG_DIR])
 	except Exception:
 		True
 
@@ -152,7 +148,7 @@ def messagebox(snackScreen, width, height, title, text, scroll=0, buttons=((_("O
 
 
 def help(snackScreen, size):
-	f = open(DOC + '/help.' + BYOBU_BACKEND + '.txt')
+	f = open(DOC + '/help.tmux.txt')
 	text = f.read()
 	f.close()
 	text = text.replace("<esckey>", getesckey(), 1)
@@ -175,10 +171,7 @@ def readstatus():
 				exec(open(f).read(), glo, loc)
 			except Exception:
 				error("Invalid configuration [%s]" % f)
-			if BYOBU_BACKEND == "tmux":
-				items = "%s %s" % (loc["tmux_left"], loc["tmux_right"])
-			else:
-				items = "%s %s %s %s" % (loc["screen_upper_left"], loc["screen_upper_right"], loc["screen_lower_left"], loc["screen_lower_right"])
+			items = "%s %s" % (loc["tmux_left"], loc["tmux_right"])
 			for i in items.split():
 				if i.startswith("#"):
 					i = i.replace("#", "")
@@ -213,25 +206,24 @@ def writestatus(items):
 	path = BYOBU_CONFIG_DIR + '/status'
 	for i in items:
 		status[i[1]] = i[0]
-	for key in ["tmux_left", "tmux_right", "screen_upper_left", "screen_upper_right", "screen_lower_left", "screen_lower_right"]:
-		if key.startswith(BYOBU_BACKEND):
-			try:
-				f = open(path, "r")
-			except Exception:
-				f = open(SHARE + '/status/status', "r")
-			lines = f.readlines()
-			f.close()
-			try:
-				f = open(path, "w")
-			except Exception:
-				f = open(path, "a+")
-			for l in lines:
-				if l.startswith("%s=" % key):
-					val = genstatusstring(key, status)
-					f.write("%s=\"%s\"\n" % (key, val))
-				else:
-					f.write(l)
-			f.close
+	for key in ["tmux_left", "tmux_right"]:
+		try:
+			f = open(path, "r")
+		except Exception:
+			f = open(SHARE + '/status/status', "r")
+		lines = f.readlines()
+		f.close()
+		try:
+			f = open(path, "w")
+		except Exception:
+			f = open(path, "a+")
+		for l in lines:
+			if l.startswith("%s=" % key):
+				val = genstatusstring(key, status)
+				f.write("%s=\"%s\"\n" % (key, val))
+			else:
+				f.write(l)
+		f.close
 
 
 def togglestatus(snackScreen, size):
@@ -286,22 +278,13 @@ def appendtofile(p, s):
 
 def getesckey():
 	line = ""
-	if BYOBU_BACKEND == "tmux":
-		path = BYOBU_CONFIG_DIR + '/keybindings.tmux'
-		if os.path.exists(path):
-			for l in open(path):
-				if l.startswith("set -g prefix "):
-					line = l
-		else:
-			return DEF_ESC
+	path = BYOBU_CONFIG_DIR + '/keybindings.tmux'
+	if os.path.exists(path):
+		for l in open(path):
+			if l.startswith("set -g prefix "):
+				line = l
 	else:
-		path = BYOBU_CONFIG_DIR + '/keybindings'
-		if os.path.exists(path):
-			for l in open(path):
-				if l.startswith("escape "):
-					line = l
-		else:
-			return DEF_ESC
+		return DEF_ESC
 	if line == "":
 		return DEF_ESC
 	esc = line[line.find('^') + 1]

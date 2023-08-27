@@ -27,7 +27,7 @@ __ip_address_detail() {
 }
 
 __ip_address() {
-	local interface ipaddr cache="$BYOBU_RUN_DIR/cache.$BYOBU_BACKEND/ip_address"
+	local interface ipaddr cache="$BYOBU_RUN_DIR/cache.tmux/ip_address"
 	# Allow interface overrides in $BYOBU_CONFIG_DIR/statusrc
 	if [ -n "$MONITORED_NETWORK" ]; then
 		interface="$MONITORED_NETWORK"

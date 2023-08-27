@@ -23,25 +23,12 @@ __session_detail() {
 }
 
 __session() {
-	# Note: This will only work in byobu-tmux
-	case "$BYOBU_BACKEND" in
-		tmux)
-			local count=$(tmux list-sessions 2>/dev/null | grep -v "^_" | wc -l)
-			if [ $count -gt 1 ]; then
-				color u W k; printf "${ICON_SESSION}#S"; color --
-			else
-				echo
-			fi
-		;;
-		screen)
-			local count=$(screen -ls | grep "^\s\+.*)$" | wc -l)
-			if [ $count -gt 1 ]; then
-				color u W k; printf "${ICON_SESSION}%S"; color --
-			else
-				echo
-			fi
-		;;
-	esac
+	local count=$(tmux list-sessions 2>/dev/null | grep -v "^_" | wc -l)
+	if [ $count -gt 1 ]; then
+		color u W k; printf "${ICON_SESSION}#S"; color --
+	else
+		echo
+	fi
 }
 
 # vi: syntax=sh ts=4 noexpandtab
